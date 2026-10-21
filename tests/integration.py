@@ -155,10 +155,14 @@ class Integration(unittest.TestCase):
         self.assertIn("Cannot resolve", result.stderr)
 
     def test_refused_is_not_timeout_or_success(self):
-        # Keep a non-listening port reserved to avoid a port allocation race.
+        # Linux/Windows reject a bound, non-listening TCP port. Darwin can
+        # silently drop SYNs in that state, so release its reservation first.
         with socket.socket() as reserved:
             reserved.bind(("127.0.0.1", 0))
-            result = run("127.0.0.1", "-p", reserved.getsockname()[1], "-c", 1, "-t", 2500, "--json")
+            port = reserved.getsockname()[1]
+            if sys.platform == "darwin":
+                reserved.close()
+            result = run("127.0.0.1", "-p", port, "-c", 1, "-t", 2500, "--json")
         self.assertEqual(result.returncode, 1)
         data = events(result)
         self.assertEqual(data[1]["status"], "refused", result.stdout)

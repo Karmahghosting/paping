@@ -83,8 +83,10 @@ Options parse(int argc, char* argv[]) {
         } else {
             if (!options.host.empty()) throw std::invalid_argument("Specify exactly one destination");
             if (arg.empty()) throw std::invalid_argument("Destination cannot be empty");
-            for (unsigned char c : arg)
+            for (char byte : arg) {
+                const auto c = static_cast<unsigned char>(byte);
                 if (c <= 32 || c == 127) throw std::invalid_argument("Invalid character in destination");
+            }
             options.host = arg;
         }
     }
@@ -96,7 +98,8 @@ Options parse(int argc, char* argv[]) {
 std::string json_string(const std::string& value) {
     std::ostringstream out;
     out << '"';
-    for (unsigned char c : value) {
+    for (char byte : value) {
+        const auto c = static_cast<unsigned char>(byte);
         if (c == '"' || c == '\\') out << '\\' << static_cast<char>(c);
         // Escape non-ASCII bytes too: native Windows error text may use a local code page.
         else if (c < 32 || c >= 127) out << "\\u00" << std::hex << std::setw(2) << std::setfill('0') << int(c);
