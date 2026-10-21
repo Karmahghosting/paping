@@ -1,0 +1,9 @@
+/build*/
+/dist/
+*.exe
+*.obj
+*.pdb
+*.ilk
+__pycache__/
+.DS_Store
+.vs/
